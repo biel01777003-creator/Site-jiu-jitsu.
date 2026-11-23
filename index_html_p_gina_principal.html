@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BJJ Master Pro - Academia Digital, Quiz Interativo de Regras IBJJF, Técnicas e História do Jiu-Jitsu Brasileiro.">
+    <title>BJJ Master Pro | Academia Digital & Quiz Interativo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-belt="black">
+
+    <!-- Canvas para efeitos visuais de confete -->
+    <canvas id="fx-canvas"></canvas>
+
+    <!-- Barra Superior de Controle e Temas -->
+    <header class="top-bar">
+        <div class="brand-logo brand-font">
+            <span>🥋 BJJ MASTER</span>
+            <span class="pro-tag">PRO</span>
+        </div>
+
+        <div class="controls-group">
+            <div class="belt-selector">
+                <span>Faixa:</span>
+                <div class="belt-dot" data-theme="white" title="Tema Faixa Branca" onclick="setBeltTheme('white', this)"></div>
+                <div class="belt-dot" data-theme="blue" title="Tema Faixa Azul" onclick="setBeltTheme('blue', this)"></div>
+                <div class="belt-dot" data-theme="purple" title="Tema Faixa Roxa" onclick="setBeltTheme('purple', this)"></div>
+                <div class="belt-dot" data-theme="brown" title="Tema Faixa Marrom" onclick="setBeltTheme('brown', this)"></div>
+                <div class="belt-dot active" data-theme="black" title="Tema Faixa Preta" onclick="setBeltTheme('black', this)"></div>
+            </div>
+            <button class="sound-toggle" id="sound-btn" title="Ativar/Desativar Efeitos Sonoros" onclick="toggleSound()">🔊</button>
+        </div>
+    </header>
+
+    <!-- Container Principal da Aplicação -->
+    <main class="app-container">
+        <!-- TELA INICIAL -->
+        <section class="start-screen" id="start-screen">
+            <div class="hero-banner">
+                <img src="https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=1000&q=85" alt="Jiu-Jitsu Brasileiro">
+                <div class="hero-overlay">
+                    <div class="hero-badges">
+                        <span class="hero-tag">Regras IBJJF • Técnicas • História</span>
+                        <span class="record-tag" id="best-record-badge">🏆 Recorde: 0 XP</span>
+                    </div>
+                    <h1>Academia Digital & Desafio BJJ</h1>
+                </div>
+            </div>
+
+            <div class="setup-grid">
+                <div class="input-group">
+                    <label for="player-name">Nome do Atleta (para o Certificado)</label>
+                    <input type="text" id="player-name" class="player-input" placeholder="Ex: Mestre Rickson / Seu Nome..." maxlength="28">
+                </div>
+
+                <div class="input-group">
+                    <label>Escolha a Modalidade de Treino</label>
+                    <div class="modes-grid">
+                        <div class="mode-card selected" data-mode="classic" onclick="selectMode('classic', this)">
+                            <span class="mode-icon">🥋</span>
+                            <h3>Campeonato</h3>
+                            <p>10 rounds oficiais com 25s cada e recursos táticos.</p>
+                        </div>
+                        <div class="mode-card" data-mode="blitz" onclick="selectMode('blitz', this)">
+                            <span class="mode-icon">⚡</span>
+                            <h3>Blitz 12s</h3>
+                            <p>Reflexo rápido! Apenas 12 segundos por posição com XP em dobro.</p>
+                        </div>
+                        <div class="mode-card" data-mode="sudden" onclick="selectMode('sudden', this)">
+                            <span class="mode-icon">🔥</span>
+                            <h3>Morte Súbita</h3>
+                            <p>Uma finalização sofrida e a luta acaba. Sobreviva até o fim!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="startQuiz()">
+                <span>INICIAR COMBATE NO TATAME</span>
+                <span>→</span>
+            </button>
+        </section>
+
+        <!-- TELA DO QUIZ -->
+        <section class="quiz-screen" id="quiz-screen">
+            <div class="top-hud">
+                <div class="hud-left">
+                    <div class="hud-pill">
+                        <span>Round</span>
+                        <strong id="question-counter" style="color: var(--accent-secondary);">1/10</strong>
+                    </div>
+                    <div class="hud-pill lives-display" id="lives-display">❤️❤️❤️</div>
+                </div>
+
+                <div class="hud-right">
+                    <div class="combo-badge" id="combo-badge">🔥 Combo 0x</div>
+                    <div class="hud-pill">
+                        <span>XP:</span>
+                        <strong id="score-display">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div class="question-content">
+                <div class="media-wrapper">
+                    <img id="q-image" src="" alt="Cenário de Jiu-Jitsu">
+                    <span class="category-pill" id="q-category">Regras</span>
+                    <div class="timer-pill" id="timer-pill">⏱️ <span id="timer-text">25</span>s</div>
+                </div>
+
+                <h2 class="question-title" id="q-text">Carregando questão...</h2>
+
+                <div class="options-grid" id="options-grid"></div>
+
+                <div class="feedback-box" id="feedback-box">
+                    <h4 id="feedback-title">Análise Técnica</h4>
+                    <p id="feedback-text"></p>
+                </div>
+
+                <div class="quiz-actions">
+                    <div class="lifelines">
+                        <button class="lifeline-btn" id="btn-5050" onclick="useFiftyFifty()">✂️ Eliminar 2</button>
+                        <button class="lifeline-btn" id="btn-hint" onclick="useHint()">💡 Dica do Corner</button>
+                    </div>
+                    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Próximo Round →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELA DE RESULTADOS / CERTIFICADO -->
+        <section class="result-screen" id="result-screen">
+            <div class="certificate-card">
+                <div class="cert-header">Certificado Oficial de Graduação Teórica</div>
+                <div class="cert-player brand-font" id="cert-player-name">Atleta Guerreiro</div>
+
+                <div class="belt-award" id="award-belt">
+                    <div class="belt-tip" id="award-tip">
+                        <div class="stripe"></div>
+                        <div class="stripe"></div>
+                        <div class="stripe"></div>
+                        <div class="stripe"></div>
+                    </div>
+                </div>
+
+                <h2 class="result-rank-title" id="result-rank">Faixa Preta 4º Grau!</h2>
+                <p class="result-subtitle" id="result-desc">Desempenho impecável no tatame.</p>
+
+                <div class="score-cards">
+                    <div class="score-card">
+                        <span>Precisão</span>
+                        <strong id="final-hits">10/10</strong>
+                    </div>
+                    <div class="score-card">
+                        <span>XP Conquistado</span>
+                        <strong id="final-xp">0 XP</strong>
+                    </div>
+                    <div class="score-card">
+                        <span>Maior Combo</span>
+                        <strong id="final-combo">0x</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-buttons">
+                <button class="btn-secondary" onclick="shareResult()">
+                    <span>📋 Copiar Certificado</span>
+                </button>
+                <button class="btn-primary" onclick="restartQuiz()">
+                    <span>🔄 Nova Luta</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notificação Flutuante (Toast) -->
+    <div class="toast" id="toast">Mensagem</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
